@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Blockchain Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7fc;
+            color: #333;
+        }
+        h1, h2 {
+            color: #0056b3;
+            margin-bottom: 20px;
+        }
+        .container {
+            width: 80%;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            padding: 12px;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        input:focus, button:focus {
+            outline: none;
+            border-color: #0056b3;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .button-container button {
+            width: auto;
+            padding: 12px 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Student Blockchain Manager - Nhóm 3</h1>
+
+        <!-- Thêm Giao Dịch -->
+        <h2>Thêm Giao Dịch</h2>
+        <form id="transactionForm">
+            <div class="form-group">
+                <label for="student_id">Student ID:</label>
+                <input type="text" id="student_id" name="student_id" required>
+            </div>
+            <div class="form-group">
+                <label for="course">Course:</label>
+                <input type="text" id="course" name="course" required>
+            </div>
+            <div class="form-group">
+                <label for="score">Score:</label>
+                <input type="number" id="score" name="score" step="0.1" required>
+            </div>
+            <button type="submit">Thêm Giao Dịch</button>
+        </form>
+        
+        <!-- Kết Quả Thêm Giao Dịch -->
+        <h2>Kết Quả Thêm Giao Dịch</h2>
+        <pre id="resulttransactionForm"></pre>
+
+        <!-- Hành Động: Khai thác Block và Xem Blockchain -->
+        <div class="button-container">
+            <button onclick="mineBlock()">Khai thác Block</button>
+            <button onclick="viewBlockchain()">Xem Blockchain</button>
+        </div>
+
+        <!-- Hiển thị kết quả khai thác Block -->
+        <h2>Hiển thị kết quả khai thác Block</h2>
+        <pre id="result"></pre>
+
+        <!-- Hiển thị Blockchain -->
+        <h2>Blockchain</h2>
+        <pre id="blockchainResult"></pre>
+
+        <!-- Xem Chi Tiết Khối -->
+        <h2>Xem Chi Tiết Khối</h2>
+        <form id="blockDetailsForm">
+            <div class="form-group">
+                <label for="block_index">Chỉ Mục Khối:</label>
+                <input type="number" id="block_index" name="block_index" required>
+            </div>
+            <button type="submit">Xem Chi Tiết Khối</button>
+        </form>
+        <h3>Chi Tiết Khối</h3>
+        <pre id="blockDetailsResult"></pre>
+
+    </div>
+
+    <script>
+        // Xử lý việc thêm giao dịch
+        document.getElementById('transactionForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const response = await fetch('/add_transaction', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            document.getElementById('resulttransactionForm').textContent = JSON.stringify(result, null, 2);
+        };
+
+        // Xử lý việc xem chi tiết khối
+        document.getElementById('blockDetailsForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const blockIndex = document.getElementById('block_index').value;
+            const response = await fetch(`/block/${blockIndex}`);
+            const result = await response.json();
+            document.getElementById('blockDetailsResult').textContent = JSON.stringify(result, null, 2);
+        };
+
+        // Xử lý việc khai thác block
+        async function mineBlock() {
+            const response = await fetch('/mine_block', { method: 'POST' });
+            const result = await response.json();
+            document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+        }
+
+        // Xử lý việc xem blockchain
+        async function viewBlockchain() {
+        const response = await fetch('/blockchain');
+        const result = await response.json();
+        const chainData = result.chain;
+        let output = '';
+
+        chainData.forEach((block, index) => {
+            output += `Block ${index}:\n`;
+            output += `  Hash: ${block.hash}\n`;
+            // output += `  Merkle Root: ${block.merkle_root}\n`;
+            // output += `  Previous Hash: ${block.previous_hash}\n`;
+            // output += `  Nonce: ${block.nonce}\n`;
+            output += `  Date Time: ${new Date(block.timestamp * 1000).toLocaleString()}\n`;  // Chuyển timestamp thành ngày giờ
+            output += `  Transactions:\n`;
+
+            block.transactions.forEach(tx => {
+                output += `    Transaction(ID: ${tx.transaction_id}, student_id: ${tx.student_id}, course: ${tx.course}, score: ${tx.score}, timestamp: ${new Date(tx.timestamp * 1000).toLocaleString()})\n`;
+            });
+
+            output += '--------------------\n';
+        });
+
+        document.getElementById('blockchainResult').textContent = output;
+    }
+
+    </script>
+
+</body>
+</html>

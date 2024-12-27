@@ -1,0 +1,4 @@
+cài flask
+-> pip install flask
+
+Chạy ứng dụng: -> python app.py
