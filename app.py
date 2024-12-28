@@ -41,8 +41,19 @@ def mine_block():
         return jsonify({'message': 'Không có giao dịch chờ xử lý!'}), 400
 
     student_blockchain.minePendingTransactions()
-    return jsonify({'message': f"Block {len(student_blockchain.chain) - 1} đã được khai thác thành công!"})
-
+    last_block = student_blockchain.chain[-1]
+    return jsonify({
+        'message': f"Block {last_block.index} đã được khai thác thành công!",
+        'block': {
+            'index': last_block.index,
+            'hash': last_block.hash,
+            'previous_hash': last_block.previous_hash,
+            'merkle_root': last_block.merkle_root,
+            'nonce': last_block.nonce,
+            'timestamp': last_block.timestamp,
+            'transactions': [tx.toDict() for tx in last_block.transactions]
+        }
+    })
 @app.route('/blockchain', methods=['GET'])
 def view_blockchain():
     """Hiển thị toàn bộ Blockchain."""
@@ -53,6 +64,7 @@ def view_blockchain():
             'hash': block.hash,
             'previous_hash': block.previous_hash,
             'merkle_root': block.merkle_root,
+            'nonce': block.nonce,
             'timestamp': block.timestamp,
             'transactions': [tx.toDict() for tx in block.transactions]
         }
@@ -71,6 +83,7 @@ def block_details(block_index):
         'hash': block.hash,
         'previous_hash': block.previous_hash,
         'merkle_root': block.merkle_root,
+        'nonce': block.nonce,
         'timestamp': block.timestamp,
         'transactions': [tx.toDict() for tx in block.transactions]
     }

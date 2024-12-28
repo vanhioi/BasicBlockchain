@@ -6,10 +6,10 @@
     <title>Student Blockchain Manager</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f7fc;
+            background-color: #f8f9fa;
             color: #333;
         }
         h1, h2 {
@@ -17,60 +17,83 @@
             margin-bottom: 20px;
         }
         .container {
-            width: 80%;
-            max-width: 900px;
+            width: 90%;
+            max-width: 1100px;
             margin: 40px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         .form-group {
             margin-bottom: 20px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: bold;
+            color: #495057;
         }
         input, button {
             padding: 12px;
             font-size: 16px;
             width: 100%;
             margin-top: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
             box-sizing: border-box;
         }
-        input:focus, button:focus {
+        input:focus {
             outline: none;
             border-color: #0056b3;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
         }
         button {
             background-color: #007bff;
-            color: white;
+            color: #fff;
             cursor: pointer;
             border: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
         button:hover {
             background-color: #0056b3;
+            transform: translateY(-2px);
         }
         pre {
-            background-color: #f1f1f1;
-            padding: 15px;
-            border-radius: 5px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
             white-space: pre-wrap;
             word-wrap: break-word;
         }
         .button-container {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
             justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
         .button-container button {
             width: auto;
-            padding: 12px 25px;
+            padding: 10px 20px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        ul li {
+            background-color: #f8f9fa;
+            margin: 10px 0;
+            padding: 15px 20px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        ul li:hover {
+            background-color: #e9ecef;
+            transform: translateX(10px);
         }
     </style>
 </head>
@@ -95,7 +118,7 @@
             </div>
             <button type="submit">Thêm Giao Dịch</button>
         </form>
-        
+
         <!-- Kết Quả Thêm Giao Dịch -->
         <h2>Kết Quả Thêm Giao Dịch</h2>
         <pre id="resulttransactionForm"></pre>
@@ -112,20 +135,11 @@
 
         <!-- Hiển thị Blockchain -->
         <h2>Blockchain</h2>
-        <pre id="blockchainResult"></pre>
+        <ul id="blockchainResult"></ul>
 
         <!-- Xem Chi Tiết Khối -->
-        <h2>Xem Chi Tiết Khối</h2>
-        <form id="blockDetailsForm">
-            <div class="form-group">
-                <label for="block_index">Chỉ Mục Khối:</label>
-                <input type="number" id="block_index" name="block_index" required>
-            </div>
-            <button type="submit">Xem Chi Tiết Khối</button>
-        </form>
-        <h3>Chi Tiết Khối</h3>
+        <h2>Chi Tiết Khối</h2>
         <pre id="blockDetailsResult"></pre>
-
     </div>
 
     <script>
@@ -142,13 +156,25 @@
         };
 
         // Xử lý việc xem chi tiết khối
-        document.getElementById('blockDetailsForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const blockIndex = document.getElementById('block_index').value;
-            const response = await fetch(`/block/${blockIndex}`);
-            const result = await response.json();
-            document.getElementById('blockDetailsResult').textContent = JSON.stringify(result, null, 2);
-        };
+        async function viewBlockDetails(index) {
+            const response = await fetch(`/block/${index}`);
+            const block = await response.json();
+
+            const blockDetailsResult = document.getElementById('blockDetailsResult');
+            let details = `Block ${index}:\n`;
+            details += `  Hash: ${block.hash}\n`;
+            details += `  Merkle Root: ${block.merkle_root}\n`;
+            details += `  Previous Hash: ${block.previous_hash}\n`;
+            details += `  Nonce: ${block.nonce}\n`;
+            details += `  Date Time: ${new Date(block.timestamp * 1000).toLocaleString()}\n`;
+            details += `  Transactions:\n`;
+
+            block.transactions.forEach(tx => {
+                details += `    Transaction(ID: ${tx.transaction_id}, student_id: ${tx.student_id}, course: ${tx.course}, score: ${tx.score}, timestamp: ${new Date(tx.timestamp * 1000).toLocaleString()})\n`;
+            });
+
+            blockDetailsResult.textContent = details;
+        }
 
         // Xử lý việc khai thác block
         async function mineBlock() {
@@ -157,33 +183,26 @@
             document.getElementById('result').textContent = JSON.stringify(result, null, 2);
         }
 
-        // Xử lý việc xem blockchain
+        // Hiển thị danh sách Blockchain
         async function viewBlockchain() {
-        const response = await fetch('/blockchain');
-        const result = await response.json();
-        const chainData = result.chain;
-        let output = '';
+            const response = await fetch('/blockchain');
+            const result = await response.json();
+            const chainData = result.chain;
 
-        chainData.forEach((block, index) => {
-            output += `Block ${index}:\n`;
-            output += `  Hash: ${block.hash}\n`;
-            // output += `  Merkle Root: ${block.merkle_root}\n`;
-            // output += `  Previous Hash: ${block.previous_hash}\n`;
-            // output += `  Nonce: ${block.nonce}\n`;
-            output += `  Date Time: ${new Date(block.timestamp * 1000).toLocaleString()}\n`;  // Chuyển timestamp thành ngày giờ
-            output += `  Transactions:\n`;
+            const blockchainResult = document.getElementById('blockchainResult');
+            blockchainResult.innerHTML = '';
 
-            block.transactions.forEach(tx => {
-                output += `    Transaction(ID: ${tx.transaction_id}, student_id: ${tx.student_id}, course: ${tx.course}, score: ${tx.score}, timestamp: ${new Date(tx.timestamp * 1000).toLocaleString()})\n`;
+            chainData.forEach((block, index) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `Block ${index}: Hash: ${block.hash}`;
+                listItem.dataset.index = index;
+                listItem.onclick = () => viewBlockDetails(index);
+                blockchainResult.appendChild(listItem);
             });
+        }
 
-            output += '--------------------\n';
-        });
-
-        document.getElementById('blockchainResult').textContent = output;
-    }
-
+        // Khởi tạo giao diện
+        viewBlockchain();
     </script>
-
 </body>
 </html>
