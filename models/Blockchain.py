@@ -35,7 +35,7 @@ class Transaction:
 # ============================
 # LỚP BLOCK (KHỐI)
 # ============================
-
+#mục đích của cái này là mỗi block trong blockchain chứa một tập hợp các giao dịch và liên kết với block trước đó.
 class Block:
     def __init__(self, index, transactions, previous_hash):
         # Chỉ số của khối
@@ -48,7 +48,7 @@ class Block:
         self.transactions = transactions
         # Merkle Root cho giao dịch
         self.merkle_root = self.calculateMerkleRoot()
-        # Nonce (dùng để khai thác khối)
+        # Nonce (dùng để khai thác khối) (Giá trị được thay đổi để tìm mã băm hợp lệ)
         self.nonce = 0
         # Mã băm của khối hiện tại
         self.hash = self.calculateHash()
@@ -62,6 +62,8 @@ class Block:
                       f"{self.nonce}")
         return hashlib.sha256(block_data.encode()).hexdigest()
 
+# Hash từng giao dịch trong danh sách.
+# Kết hợp từng cặp hash để tạo hash mới ở mức trên, lặp lại đến khi chỉ còn một giá trị duy nhất.
     def calculateMerkleRoot(self):
         # Tính Merkle Root từ danh sách giao dịch
         hashes = []
@@ -95,7 +97,7 @@ class Block:
         # Khai thác khối bằng cách tìm mã băm bắt đầu với một số lượng "0" nhất định
         target = "0" * difficulty
         while not self.hash.startswith(target):
-            self.nonce += 1
+            self.nonce += 1 #Tăng nonce đến khi tìm được mã băm phù hợp
             self.hash = self.calculateHash()
 
     def __repr__(self):
@@ -119,6 +121,7 @@ class Blockchain:
         return Block(0, [], "0")
 
     def getLatestBlock(self):
+        # Trả về block cuối cùng trong chuỗi
         return self.chain[-1]
 
     def addTransaction(self, transaction):
@@ -130,7 +133,7 @@ class Blockchain:
         if not self.pending_transactions:
             print("Không có giao dịch chờ xử lý.")
             return
-
+        # Khai thác block bằng cách tìm mã băm hợp lệ.
         latest_block = self.getLatestBlock()
         new_block = Block(len(self.chain), self.pending_transactions, latest_block.hash)
         new_block.mineBlock(self.difficulty)

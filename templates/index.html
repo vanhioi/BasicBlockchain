@@ -146,6 +146,7 @@
         // Xử lý việc thêm giao dịch
         document.getElementById('transactionForm').onsubmit = async (e) => {
             e.preventDefault();
+            // Dữ liệu trong biểu mẫu được lấy bằng FormData(e.target) và gửi đến server qua API /add_transaction.
             const formData = new FormData(e.target);
             const response = await fetch('/add_transaction', {
                 method: 'POST',
@@ -157,6 +158,7 @@
 
         // Xử lý việc xem chi tiết khối
         async function viewBlockDetails(index) {
+            // Gửi yêu cầu GET đến API /block/<index> với chỉ số của block cần xem.
             const response = await fetch(`/block/${index}`);
             const block = await response.json();
 
@@ -190,13 +192,13 @@
             const chainData = result.chain;
 
             const blockchainResult = document.getElementById('blockchainResult');
-            blockchainResult.innerHTML = '';
+            blockchainResult.innerHTML = ''; //Xóa nội dung cũ trong phần tử blockchainResult.
 
             chainData.forEach((block, index) => {
                 const listItem = document.createElement('li');
                 listItem.textContent = `Block ${index}: Hash: ${block.hash}`;
-                listItem.dataset.index = index;
-                listItem.onclick = () => viewBlockDetails(index);
+                listItem.dataset.index = index; // Lưu chỉ số block trong thuộc tính
+                listItem.onclick = () => viewBlockDetails(index); // Gán sự kiện click để xem chi tiết block
                 blockchainResult.appendChild(listItem);
             });
         }
